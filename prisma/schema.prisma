@@ -1,0 +1,433 @@
+// This is your Prisma schema file for ALTFaze Marketplace
+// Global freelancer marketplace for developers, designers & businesses
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CLIENT
+  FREELANCER
+  ADMIN
+}
+
+enum ProjectStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum HireRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum EscrowStatus {
+  HELD
+  RELEASED
+  REFUNDED
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum WithdrawalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  bio           String?
+  role          UserRole  @default(CLIENT)
+  
+  location      String?
+  hourlyRate    Float?
+  skills        String[]  @default([])
+  portfolio     String?
+  rating        Float     @default(5.0)
+  reviewCount   Int       @default(0)
+  
+  stripeAccountId String?
+  stripeCustomerId String?
+
+  profile       Profile?
+  projects      Project[]       @relation("ProjectCreator")
+  proposals     Proposal[]
+  orders        Order[]
+  reviews       Review[]
+  wallet        Wallet?
+  transactions  Transaction[]
+  withdrawals   WithdrawalRequest[]
+  templates     Template[]      @relation("TemplateCreator")
+  templatePurchases TemplatePurchase[] @relation("BuyerPurchases")
+  soldTemplates TemplatePurchase[] @relation("SellerSales")
+  sentHireRequests HireRequest[] @relation("ClientHireRequests")
+  receivedHireRequests HireRequest[] @relation("FreelancerHireRequests")
+  
+  sentMessages  Message[]
+  notifications Notification[]
+  presence      UserPresence?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(role)
+  @@index(email)
+}
+
+model Profile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  verified      Boolean   @default(false)
+  completionPercentage Int @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Project {
+  id            String    @id @default(cuid())
+  title         String
+  description   String    @db.Text
+  budget        Float
+  deadline      DateTime?
+  category      String
+  skills        String[]
+  status        ProjectStatus @default(OPEN)
+  
+  creatorId     String
+  creator       User      @relation("ProjectCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  proposals     Proposal[]
+  order         Order?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(creatorId)
+  @@index(status)
+  @@index(category)
+}
+
+model Proposal {
+  id            String    @id @default(cuid())
+  projectId     String
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  freelancerId  String
+  freelancer    User      @relation(fields: [freelancerId], references: [id], onDelete: Cascade)
+  
+  bidAmount     Float
+  coverLetter   String    @db.Text
+  deliveryDays  Int
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([projectId, freelancerId])
+  @@index(projectId)
+  @@index(freelancerId)
+}
+
+model Order {
+  id            String    @id @default(cuid())
+  projectId     String    @unique
+  project       Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  clientId      String
+  client        User      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  
+  freelancerId  String?
+  
+  amount        Float
+  status        OrderStatus @default(PENDING)
+  
+  paymentStatus PaymentStatus @default(PENDING)
+  escrowStatus  EscrowStatus @default(HELD)
+  
+  stripePaymentIntentId String?
+  stripeSessionId String?
+  
+  transactionId String?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(clientId)
+  @@index(status)
+  @@index(paymentStatus)
+  @@index(escrowStatus)
+  @@index(stripePaymentIntentId)
+}
+
+model Template {
+  id            String    @id @default(cuid())
+  title         String
+  description   String    @db.Text
+  category      String
+  price         Float
+  imageUrl      String?
+  fileUrl       String?
+  features      String[]  @default([])
+  techStack     String[]  @default([])
+  downloads     Int       @default(0)
+  rating        Float     @default(0)
+  
+  creatorId     String
+  creator       User      @relation("TemplateCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  
+  purchases     TemplatePurchase[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(creatorId)
+  @@index(category)
+  @@index(price)
+}
+
+model TemplatePurchase {
+  id            String    @id @default(cuid())
+  templateId    String
+  template      Template  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  
+  buyerId       String
+  buyer         User      @relation("BuyerPurchases", fields: [buyerId], references: [id], onDelete: Cascade)
+  
+  sellerId      String
+  seller        User      @relation("SellerSales", fields: [sellerId], references: [id], onDelete: Cascade)
+  
+  amount        Float
+  status        String    @default("completed")
+  
+  paymentStatus PaymentStatus @default(PENDING)
+  escrowStatus  EscrowStatus @default(HELD)
+  
+  stripePaymentIntentId String?
+  stripeSessionId String?
+  
+  transactionId String?
+  
+  fileDownloadUrl String?
+  downloadCount Int @default(0)
+  
+  createdAt     DateTime  @default(now())
+
+  @@index(templateId)
+  @@index(buyerId)
+  @@index(sellerId)
+  @@index(paymentStatus)
+  @@index(escrowStatus)
+}
+
+model HireRequest {
+  id            String    @id @default(cuid())
+  clientId      String
+  client        User      @relation("ClientHireRequests", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  freelancerId  String
+  freelancer    User      @relation("FreelancerHireRequests", fields: [freelancerId], references: [id], onDelete: Cascade)
+  
+  message       String    @db.Text
+  status        HireRequestStatus @default(PENDING)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(clientId)
+  @@index(freelancerId)
+  @@index(status)
+}
+
+model Review {
+  id            String    @id @default(cuid())
+  rating        Int
+  comment       String    @db.Text
+  
+  reviewerId    String
+  reviewer      User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(reviewerId)
+}
+
+model Wallet {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  balance       Float     @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Transaction {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type          TransactionType
+  amount        Float
+  description   String?
+  status        PaymentStatus @default(SUCCEEDED)
+  
+  stripePaymentIntentId String?
+  referenceId   String?
+  
+  metadata      String?
+  
+  createdAt     DateTime  @default(now())
+
+  @@index(userId)
+  @@index(type)
+  @@index(status)
+}
+
+model WithdrawalRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  amount        Float
+  status        WithdrawalStatus @default(PENDING)
+  
+  bankAccountLastFour String?
+  stripePayoutId String?
+  
+  reason        String?
+  adminNotes    String?
+  
+  requestedAt   DateTime  @default(now())
+  processedAt   DateTime?
+  completedAt   DateTime?
+
+  @@index(userId)
+  @@index(status)
+}
+
+enum NotificationType {
+  MESSAGE
+  ORDER_ACCEPTED
+  ORDER_COMPLETED
+  HIRE_REQUEST
+  BID_RECEIVED
+  PROJECT_STARTED
+  FILE_SHARED
+  USER_ONLINE
+}
+
+model Conversation {
+  id            String    @id @default(cuid())
+  
+  participantIds String[] @default([])
+  
+  projectId     String?
+  orderId       String?
+  
+  lastMessage   String?
+  lastMessageAt DateTime?
+  
+  messages      Message[]
+  notifications Notification[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(createdAt)
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  conversationId String
+  conversation  Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  
+  senderId      String
+  sender        User      @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  
+  text          String    @db.Text
+  fileUrl       String?
+  fileName      String?
+  
+  isRead        Boolean   @default(false)
+  readAt        DateTime?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index(conversationId)
+  @@index(senderId)
+  @@index(createdAt)
+}
+
+model Notification {
+  id            String    @id @default(cuid())
+  conversationId String?
+  conversation  Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  
+  userId        String
+  type          NotificationType
+  message       String
+  actionUrl     String?
+  
+  isRead        Boolean   @default(false)
+  readAt        DateTime?
+  
+  metadata      String?
+  
+  createdAt     DateTime  @default(now())
+
+  @@index(userId)
+  @@index(type)
+  @@index(isRead)
+  @@index(createdAt)
+}
+
+model UserPresence {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  isOnline      Boolean   @default(false)
+  lastSeenAt    DateTime  @default(now())
+  
+  updatedAt     DateTime  @updatedAt
+
+  @@index(userId)
+}
