@@ -12,7 +12,16 @@ const credentialsSchema = z.object({
 
 export const authConfig = {
   adapter: PrismaAdapter(db),
-  session: { strategy: "jwt" },
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 60 * 60 * 24 * 7,
+    updateAge: 60 * 60 * 24,
+  },
+  jwt: {
+    maxAge: 60 * 60 * 24 * 7,
+  },
+  useSecureCookies: process.env.NODE_ENV === "production",
   pages: {
     signIn: "/auth/sign-in",
     signUp: "/auth/sign-up",

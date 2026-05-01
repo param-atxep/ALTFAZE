@@ -1,75 +1,75 @@
 import Stripe from 'stripe';
-import { prisma } from '@/lib/prisma';
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth.config';
 import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { auth } from '@/lib/auth';
+import { prisma } from '@/lib/prisma';
+import { logger } from '@/lib/logger';
+import { rateLimit, createRateLimitResponse } from '@/lib/security';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
+const stripe = stripeSecretKey ? new Stripe(stripeSecretKey) : null;
 
-interface CheckoutRequest {
-  templateId: string;
-  sellerId: string;
-  amount: number;
-}
+const checkoutSchema = z.object({
+  templateId: z.string().min(1),
+});
 
 export async function POST(req: NextRequest) {
+  const rateLimitResult = rateLimit(req, 'checkout', {
+    limit: 5,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult, {
+      limit: 5,
+      windowMs: 60 * 1000,
+    });
+  }
+
   try {
-    const session = await getServerSession(authConfig);
+    if (!stripe) {
+      return NextResponse.json({ error: 'Payment provider not configured' }, { status: 503 });
+    }
 
+    const session = await auth();
     if (!session?.user?.email) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body: CheckoutRequest = await req.json();
-    const { templateId, sellerId, amount } = body;
-
-    if (!templateId || !sellerId || !amount) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
-      );
+    const body = checkoutSchema.safeParse(await req.json());
+    if (!body.success) {
+      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
     }
 
-    // Verify template exists
-    const template = await prisma.template.findUnique({
-      where: { id: templateId },
-    });
+    const { templateId } = body.data;
 
-    if (!template) {
-      return NextResponse.json(
-        { error: 'Template not found' },
-        { status: 404 }
-      );
-    }
-
-    // Verify seller exists
-    const seller = await prisma.user.findUnique({
-      where: { id: sellerId },
-    });
-
-    if (!seller) {
-      return NextResponse.json(
-        { error: 'Seller not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get buyer info
     const buyer = await prisma.user.findUnique({
       where: { email: session.user.email },
     });
 
     if (!buyer) {
-      return NextResponse.json(
-        { error: 'Buyer not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Buyer not found' }, { status: 404 });
     }
 
-    // Create or get Stripe customer for buyer
+    const template = await prisma.template.findUnique({
+      where: { id: templateId },
+      include: {
+        creator: true,
+      },
+    });
+
+    if (!template) {
+      return NextResponse.json({ error: 'Template not found' }, { status: 404 });
+    }
+
+    if (template.status !== 'APPROVED') {
+      return NextResponse.json({ error: 'Template is not available for purchase' }, { status: 403 });
+    }
+
+    if (template.creatorId === buyer.id) {
+      return NextResponse.json({ error: 'Cannot purchase your own template' }, { status: 400 });
+    }
+
     let stripeCustomerId = buyer.stripeCustomerId;
 
     if (!stripeCustomerId) {
@@ -79,26 +79,38 @@ export async function POST(req: NextRequest) {
       });
       stripeCustomerId = stripeCustomer.id;
 
-      // Save stripe customer ID
       await prisma.user.update({
         where: { id: buyer.id },
         data: { stripeCustomerId },
       });
     }
 
-    // Create template purchase record
-    const templatePurchase = await prisma.templatePurchase.create({
+    const existingPurchase = await prisma.templatePurchase.findFirst({
+      where: {
+        templateId,
+        buyerId: buyer.id,
+        paymentStatus: {
+          in: ['PENDING', 'SUCCEEDED'],
+        },
+      },
+    });
+
+    if (existingPurchase?.paymentStatus === 'SUCCEEDED') {
+      return NextResponse.json({ error: 'Template already purchased' }, { status: 409 });
+    }
+
+    const templatePurchase = existingPurchase || await prisma.templatePurchase.create({
       data: {
         templateId,
         buyerId: buyer.id,
-        sellerId,
-        amount,
+        sellerId: template.creatorId,
+        amount: template.price,
         paymentStatus: 'PENDING',
         escrowStatus: 'HELD',
       },
     });
 
-    // Create checkout session
+    const appUrl = process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXTAUTH_URL || 'http://localhost:3000';
     const checkoutSession = await stripe.checkout.sessions.create({
       customer: stripeCustomerId,
       payment_method_types: ['card'],
@@ -111,34 +123,36 @@ export async function POST(req: NextRequest) {
               description: template.description.substring(0, 500),
               images: template.imageUrl ? [template.imageUrl] : undefined,
             },
-            unit_amount: Math.round(amount * 100),
+            unit_amount: Math.round(template.price * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${process.env.NEXTAUTH_URL}/templates/${templateId}?success=true`,
-      cancel_url: `${process.env.NEXTAUTH_URL}/templates/${templateId}?cancelled=true`,
+      success_url: `${appUrl}/templates/${template.slug}?success=true`,
+      cancel_url: `${appUrl}/templates/${template.slug}?cancelled=true`,
       metadata: {
         templatePurchaseId: templatePurchase.id,
         buyerId: buyer.id,
-        sellerId,
+        sellerId: template.creatorId,
         templateId,
       },
     });
 
-    // Update purchase with session ID
     await prisma.templatePurchase.update({
       where: { id: templatePurchase.id },
-      data: { stripeSessionId: checkoutSession.id },
+      data: {
+        stripeSessionId: checkoutSession.id,
+        sellerId: template.creatorId,
+        amount: template.price,
+      },
     });
 
     return NextResponse.json({ url: checkoutSession.url });
   } catch (error) {
-    console.error('Checkout error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    logger.error('Checkout error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

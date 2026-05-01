@@ -163,7 +163,7 @@ export default function TemplatesPage() {
                 <div className="flex items-center justify-between pt-4 border-t">
                   <span className="text-2xl font-bold">${template.price}</span>
                   <Button asChild>
-                    <Link href={`/templates/${template.id}`}>View Details</Link>
+                    <Link href={`/templates/${template.slug}`}>View Details</Link>
                   </Button>
                 </div>
               </CardContent>

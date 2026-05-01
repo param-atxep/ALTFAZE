@@ -64,10 +64,29 @@ enum WithdrawalStatus {
   COMPLETED
 }
 
+enum TemplateStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum AdminActionType {
+  USER_BLOCKED
+  USER_DELETED
+  TEMPLATE_APPROVED
+  TEMPLATE_REJECTED
+  TEMPLATE_DELETED
+  PROJECT_REMOVED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
+  OTHER
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
   email         String?   @unique
+  slug          String?   @unique
   emailVerified DateTime?
   password      String?
   image         String?
@@ -101,11 +120,13 @@ model User {
   sentMessages  Message[]
   notifications Notification[]
   presence      UserPresence?
+  adminLogs     AdminLog[]    @relation("AdminLogs")
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   @@index(role)
+  @@index(slug)
   @@index(email)
 }
 
@@ -199,6 +220,7 @@ model Order {
 model Template {
   id            String    @id @default(cuid())
   title         String
+  slug          String    @unique
   description   String    @db.Text
   category      String
   price         Float
@@ -208,6 +230,7 @@ model Template {
   techStack     String[]  @default([])
   downloads     Int       @default(0)
   rating        Float     @default(0)
+  status        TemplateStatus @default(PENDING)
   
   creatorId     String
   creator       User      @relation("TemplateCreator", fields: [creatorId], references: [id], onDelete: Cascade)
@@ -219,7 +242,9 @@ model Template {
 
   @@index(creatorId)
   @@index(category)
+  @@index(slug)
   @@index(price)
+  @@index(status)
 }
 
 model TemplatePurchase {
@@ -404,6 +429,7 @@ model Notification {
   conversation  Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
   
   userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   type          NotificationType
   message       String
   actionUrl     String?
@@ -424,10 +450,76 @@ model Notification {
 model UserPresence {
   id            String    @id @default(cuid())
   userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   isOnline      Boolean   @default(false)
   lastSeenAt    DateTime  @default(now())
   
   updatedAt     DateTime  @updatedAt
 
   @@index(userId)
+}
+
+model AdminLog {
+  id            String    @id @default(cuid())
+  action        AdminActionType
+  adminId       String
+  admin         User      @relation("AdminLogs", fields: [adminId], references: [id], onDelete: SetNull)
+  targetId      String?
+  targetType    String?
+  description   String    @db.Text
+  metadata      String?
+  
+  createdAt     DateTime  @default(now())
+
+  @@index(adminId)
+  @@index(action)
+  @@index(createdAt)
+  @@index(targetId)
+}
+
+model AdminNotification {
+  id            String    @id @default(cuid())
+  type          String
+  title         String
+  message       String    @db.Text
+  actionUrl     String?
+  priority      String    @default("normal")
+  
+  isRead        Boolean   @default(false)
+  readAt        DateTime?
+  
+  createdAt     DateTime  @default(now())
+
+  @@index(type)
+  @@index(isRead)
+  @@index(priority)
+  @@index(createdAt)
+}
+
+model Blog {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  description   String
+  content       String    @db.Text
+  excerpt       String?
+  image         String?
+  author        String
+  category      String
+  tags          String[]  @default([])
+  
+  published     Boolean   @default(false)
+  featuredImage String?
+  
+  views         Int       @default(0)
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  publishedAt   DateTime?
+
+  @@index(slug)
+  @@index(published)
+  @@index(category)
+  @@index(createdAt)
+  @@fulltext([title, content])
 }

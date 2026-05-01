@@ -10,12 +10,12 @@
     "lint": "next lint",
     "postinstall": "prisma generate"
   },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  }
   "dependencies": {
-    "next-auth": "^4.24.0",
-    "stripe": "^14.18.0",
-    "bcryptjs": "^2.4.3",
-    "socket.io": "^4.7.2",
-    "socket.io-client": "^4.7.2",
+    "@auth/prisma-adapter": "^2.11.2",
+    "@clerk/nextjs": "^7.3.0",
     "@hookform/resolvers": "^3.6.0",
     "@prisma/client": "^5.15.0",
     "@radix-ui/react-accordion": "^1.1.2",
@@ -46,6 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
     "@tanstack/react-query": "^5.40.1",
+    "bcryptjs": "^2.4.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -56,22 +57,32 @@
     "lucide-react": "^0.383.0",
     "mini-svg-data-uri": "^1.4.4",
     "next": "14.2.13",
+    "next-auth": "^4.24.0",
     "next-themes": "^0.3.0",
     "react": "^18",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18",
     "react-hook-form": "^7.51.5",
+    "react-markdown": "^10.1.0",
     "react-resizable-panels": "^2.0.19",
+    "recharts": "^2.10.0",
+    "rehype-highlight": "^7.0.2",
+    "remark-gfm": "^4.0.1",
+    "socket.io": "^4.7.2",
+    "socket.io-client": "^4.7.2",
     "sonner": "^1.4.41",
+    "stripe": "^14.18.0",
     "tailwind-merge": "^2.3.0",
     "tailwind-scrollbar-hide": "^1.1.7",
     "tailwindcss-animate": "^1.0.7",
     "unique-names-generator": "^4.7.1",
     "usehooks-ts": "^3.1.0",
     "vaul": "^0.9.1",
+    "web-vitals": "^5.2.0",
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
@@ -80,7 +91,7 @@
     "postcss": "^8",
     "prisma": "^5.15.0",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5",
-    "tsx": "^4.7.0"
+    "tsx": "^4.7.0",
+    "typescript": "^5"
   }
 }

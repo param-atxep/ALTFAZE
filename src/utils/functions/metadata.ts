@@ -21,7 +21,7 @@ export const generateMetadata = ({
             url: "/favicon-16x16.png"
         },
     ],
-    noIndex = false
+    noIndex = false,
 }: {
     title?: string;
     description?: string;
@@ -32,17 +32,26 @@ export const generateMetadata = ({
     title,
     description,
     icons,
+    metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://altfaze.com"),
     openGraph: {
         title,
         description,
-        ...(image && { images: [{ url: image }] }),
+        url: process.env.NEXT_PUBLIC_SITE_URL || "https://altfaze.com",
+        siteName: process.env.NEXT_PUBLIC_APP_NAME || "ALTFaze",
+        locale: "en_US",
+        ...(image && { images: [{ url: image, width: 1200, height: 630, alt: title }] }),
     },
     twitter: {
         title,
         description,
         ...(image && { card: "summary_large_image", images: [image] }),
-        creator: "@shreyassihasane",
+        creator: "@altfaze_io",
     },
-    // metadataBase: new URL(process.env.APP_DOMAIN!),
+    alternates: {
+        canonical: process.env.NEXT_PUBLIC_SITE_URL || "https://altfaze.com",
+    },
+    verification: {
+        google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+    },
     ...(noIndex && { robots: { index: false, follow: false } }),
 });

@@ -1,44 +1,57 @@
-import { auth } from "@/lib/auth";
-import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { NextRequest, NextResponse } from 'next/server';
+import { auth } from '@/lib/auth';
+import { logger } from '@/lib/logger';
+import { rateLimit, createRateLimitResponse, validateUploadFile } from '@/lib/security';
+import { uploadToCloudinary } from '@/lib/cloudinary';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
+  const rateLimitResult = rateLimit(req, 'upload', {
+    limit: 10,
+    windowMs: 60 * 1000,
+  });
+
+  if (!rateLimitResult.allowed) {
+    return createRateLimitResponse(rateLimitResult, {
+      limit: 10,
+      windowMs: 60 * 1000,
+    });
+  }
+
   try {
     const session = await auth();
     if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (!process.env.CLOUDINARY_URL) {
+      return NextResponse.json({ error: 'Upload storage is not configured' }, { status: 503 });
     }
 
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+    const file = formData.get('file');
 
-    if (!file) {
-      return NextResponse.json({ error: "No file provided" }, { status: 400 });
+    if (!(file instanceof File)) {
+      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Create uploads directory if it doesn't exist
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
+    const validation = validateUploadFile(file, 10 * 1024 * 1024);
+    if (!validation.valid) {
+      return NextResponse.json({ error: validation.error }, { status: 400 });
+    }
 
-    // Generate unique filename
-    const timestamp = Date.now();
-    const filename = `${timestamp}-${file.name}`;
-    const filepath = join(uploadDir, filename);
+    const upload = await uploadToCloudinary(file, 'altfaze/uploads');
 
-    // Write file
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-    await writeFile(filepath, buffer);
-
-    // Return URL
-    const url = `/uploads/${filename}`;
-    return NextResponse.json({ url, filename: file.name });
+    return NextResponse.json({
+      url: upload.secure_url,
+      publicId: upload.public_id,
+      resourceType: upload.resource_type,
+    });
   } catch (error) {
-    console.error("Upload error:", error);
-    return NextResponse.json(
-      { error: "Failed to upload file" },
-      { status: 500 }
-    );
+    logger.error('Upload error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return NextResponse.json({ error: 'Failed to upload file' }, { status: 500 });
   }
 }

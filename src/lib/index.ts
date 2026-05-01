@@ -1,2 +1,2 @@
-export * from "./prisma";
+export { db, prisma } from "./db";
 export * from "./names";

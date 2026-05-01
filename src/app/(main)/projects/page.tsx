@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { buildProjectPath } from "@/lib/seo";
 
 const CATEGORIES = [
   "Web Design",
@@ -166,7 +167,7 @@ export default function BrowseProjectsPage() {
                   </div>
 
                   <Button asChild>
-                    <Link href={`/projects/${project.id}`}>View & Bid</Link>
+                    <Link href={buildProjectPath(project.title, project.id)}>View & Bid</Link>
                   </Button>
                 </div>
               </CardContent>
