@@ -72,6 +72,7 @@ enum TemplateStatus {
 
 enum AdminActionType {
   USER_BLOCKED
+  USER_BANNED
   USER_DELETED
   TEMPLATE_APPROVED
   TEMPLATE_REJECTED
@@ -99,6 +100,7 @@ model User {
   portfolio     String?
   rating        Float     @default(5.0)
   reviewCount   Int       @default(0)
+  isBanned      Boolean   @default(false)
   
   stripeAccountId String?
   stripeCustomerId String?
@@ -357,12 +359,16 @@ model WithdrawalRequest {
   
   bankAccountLastFour String?
   stripePayoutId String?
+  razorpayPayoutId String?
   
   reason        String?
   adminNotes    String?
+  approvedBy    String?
   
   requestedAt   DateTime  @default(now())
   processedAt   DateTime?
+  approvedAt    DateTime?
+  rejectedAt    DateTime?
   completedAt   DateTime?
 
   @@index(userId)
@@ -378,6 +384,10 @@ enum NotificationType {
   PROJECT_STARTED
   FILE_SHARED
   USER_ONLINE
+  TEMPLATE_APPROVED
+  TEMPLATE_REJECTED
+  WITHDRAWAL_APPROVED
+  WITHDRAWAL_REJECTED
 }
 
 model Conversation {
@@ -521,5 +531,4 @@ model Blog {
   @@index(published)
   @@index(category)
   @@index(createdAt)
-  @@fulltext([title, content])
 }

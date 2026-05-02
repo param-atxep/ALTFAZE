@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.json",
+  "include": [
+    "src/actions/admin.ts",
+    "src/actions/orders.ts",
+    "src/actions/proposals.ts",
+    "src/actions/wallet.ts",
+    "src/actions/notifications.ts",
+    "src/app/api/chat/notifications/route.ts",
+    "src/app/api/chat/notifications/[id]/route.ts",
+    "src/app/api/chat/auto-create/route.ts"
+  ]
+}

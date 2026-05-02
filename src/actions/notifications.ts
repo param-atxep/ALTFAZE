@@ -3,6 +3,7 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import type { NotificationType } from "@prisma/client";
 
 export async function getUserNotifications(unreadOnly = false) {
   const session = await auth();
@@ -130,7 +131,7 @@ export async function getUnreadCount() {
 
 export async function sendNotification(
   userId: string,
-  type: string,
+  type: NotificationType,
   message: string,
   actionUrl?: string
 ) {

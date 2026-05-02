@@ -10,11 +10,9 @@ const getAuthStatus = async () => {
         return { error: "User not found" };
     }
 
-    let clerkId = user.id;
-
     const existingUser = await db.user.findFirst({
         where: {
-            clerkId,
+            email: user.primaryEmailAddress.emailAddress,
         },
     });
 
@@ -23,7 +21,6 @@ const getAuthStatus = async () => {
     if (!existingUser) {
         await db.user.create({
             data: {
-                clerkId,
                 email: user.primaryEmailAddress.emailAddress,
                 name: user.fullName || user.firstName,
                 image: user.imageUrl,

@@ -2,6 +2,7 @@
 
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import type { NotificationType } from "@prisma/client";
 
 export async function createConversation(
   participantIds: string[],
@@ -63,7 +64,7 @@ export async function getUserPresence(userId: string) {
 
 export async function sendNotification(
   userId: string,
-  type: string,
+  type: NotificationType,
   message: string,
   actionUrl?: string,
   conversationId?: string

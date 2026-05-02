@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { generateSlug } from "@/lib/performance";
 import { z } from "zod";
 
 // ============ TEMPLATE OPERATIONS ============
@@ -75,7 +76,7 @@ export async function buyTemplate(templateId: string) {
     await db.transaction.create({
       data: {
         userId: session.user.id,
-        type: "PURCHASE",
+        type: "DEBIT",
         amount: template.price,
         description: `Purchased template: ${template.title}`,
       },
@@ -84,7 +85,7 @@ export async function buyTemplate(templateId: string) {
     await db.transaction.create({
       data: {
         userId: template.creatorId,
-        type: "SALE",
+        type: "CREDIT",
         amount: template.price,
         description: `Sold template: ${template.title}`,
       },
@@ -442,6 +443,7 @@ export async function createTemplate(
   try {
     const template = await db.template.create({
       data: {
+        slug: generateSlug(validatedData.data.title),
         title: validatedData.data.title,
         description: validatedData.data.description,
         price: validatedData.data.price,
