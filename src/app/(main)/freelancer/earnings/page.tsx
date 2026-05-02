@@ -27,8 +27,8 @@ export default function EarningsPage() {
   const loadStats = async () => {
     try {
       const results = await getFreelancerEarningsStats();
-      if ("error" in results) {
-        toast.error(results.error);
+      if (typeof results === "object" && results !== null && "error" in results) {
+        toast.error(String((results as any).error));
       } else {
         setStats(results);
       }

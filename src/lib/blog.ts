@@ -27,7 +27,7 @@ export function generateBlogExcerpt(content: string, length: number = 160): stri
   // Truncate to word boundary
   if (text.length > length) {
     text = text.substring(0, length);
-    text = text.substring(0, Math.lastIndexOf(text, ' ')) + '...';
+    text = text.substring(0, text.lastIndexOf(' ')) + '...';
   }
 
   return text;

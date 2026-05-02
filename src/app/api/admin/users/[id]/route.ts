@@ -19,7 +19,7 @@ export async function POST(
     if (action === "block") {
       await db.user.update({
         where: { id: userId },
-        data: { isBlocked: true },
+        data: { isBanned: true },
       });
 
       await db.adminLog.create({
@@ -36,12 +36,12 @@ export async function POST(
     } else if (action === "unblock") {
       await db.user.update({
         where: { id: userId },
-        data: { isBlocked: false },
+        data: { isBanned: false },
       });
 
       await db.adminLog.create({
         data: {
-          action: "USER_UNBLOCKED",
+          action: "OTHER",
           adminId: session.user.id,
           targetId: userId,
           targetType: "USER",

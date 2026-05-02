@@ -164,7 +164,7 @@ export function WithdrawalForm() {
               placeholder="1234"
               value={bankAccount}
               onChange={(e) => setBankAccount(e.target.value.slice(-4))}
-              maxLength="4"
+              maxLength={4}
             />
           </div>
 

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma, isDatabaseUrlConfigured } from '@/lib/db';
 import { generateArticleSchema, generateBreadcrumbSchema, generateJsonLd, generateMetadata as generateSEOMetadata } from '@/lib/seo';
 import { parseMarkdownHeadings, readingTimeMinutes, generateBlogExcerpt } from '@/lib/blog';
 import Image from 'next/image';
@@ -46,6 +46,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  if (!isDatabaseUrlConfigured) return [];
+
   // Pre-render published blog posts
   const posts = await prisma.blog.findMany({
     where: { published: true },
@@ -221,7 +223,7 @@ export default async function BlogPostPage({ params }: Props) {
                 a: ({ node, href, ...props }) => (
                   <a href={href} className="text-blue-600 hover:underline" {...props} />
                 ),
-                code: ({ node, inline, ...props }) =>
+                code: ({ node, inline, ...props }: any) =>
                   inline ? (
                     <code className="bg-slate-100 px-2 py-1 rounded text-sm font-mono" {...props} />
                   ) : (

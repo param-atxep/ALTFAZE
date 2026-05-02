@@ -230,7 +230,7 @@ export default async function BlogPage({ searchParams }: Props) {
                           key={pageNum}
                           href={`/blog?page=${pageNum}${category ? `&category=${category}` : ''}`}
                         >
-                          <Button variant={pageNum === page ? 'default' : 'outline'}>
+                          <Button variant={pageNum === page ? 'primary' : 'outline'}>
                             {pageNum}
                           </Button>
                         </Link>

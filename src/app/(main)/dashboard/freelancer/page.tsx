@@ -61,8 +61,8 @@ export default function FreelancerDashboardPage() {
       ]);
 
       setStats(statsData);
-      setTemplates(templatesData || []);
-      setSales(salesData || []);
+      setTemplates(Array.isArray(templatesData) ? templatesData : []);
+      setSales(Array.isArray(salesData) ? salesData : []);
     } catch (error) {
       toast.error("Failed to load dashboard");
     } finally {

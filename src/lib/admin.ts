@@ -2,6 +2,7 @@ import { $Enums } from "@prisma/client";
 
 export const AdminActionDescriptions: Record<$Enums.AdminActionType, string> = {
   USER_BLOCKED: "User account blocked",
+  USER_BANNED: "User account banned",
   USER_DELETED: "User account permanently deleted",
   TEMPLATE_APPROVED: "Template approved for marketplace",
   TEMPLATE_REJECTED: "Template rejected",
@@ -14,6 +15,7 @@ export const AdminActionDescriptions: Record<$Enums.AdminActionType, string> = {
 
 export const AdminActionColors: Record<$Enums.AdminActionType, string> = {
   USER_BLOCKED: "yellow",
+  USER_BANNED: "red",
   USER_DELETED: "red",
   TEMPLATE_APPROVED: "green",
   TEMPLATE_REJECTED: "yellow",

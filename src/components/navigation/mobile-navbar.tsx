@@ -14,14 +14,14 @@ import {
     SheetTrigger
 } from "@/components/ui/sheet";
 import { cn, NAV_LINKS } from "@/utils";
-import { useAuth } from "@clerk/nextjs";
+import { useSession } from "next-auth/react";
 import { LucideIcon, Menu, X } from "lucide-react";
 import Link from "next/link";
 import React, { useState } from 'react';
 
 const MobileNavbar = () => {
 
-    const { isSignedIn, signOut } = useAuth();
+    const { data: session } = useSession();
 
     const [isOpen, setIsOpen] = useState<boolean>(false);
 
@@ -45,7 +45,7 @@ const MobileNavbar = () => {
                     </SheetClose>
                     <div className="flex flex-col items-start w-full py-2 mt-10">
                         <div className="flex items-center justify-evenly w-full space-x-2">
-                            {isSignedIn ? (
+                            {session?.user ? (
                                 <Link href="/dashboard" className={buttonVariants({ variant: "outline", className: "w-full" })}>
                                     Dashboard
                                 </Link>

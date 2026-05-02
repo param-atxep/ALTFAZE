@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
-import { getCLS, getFCP, getFID, getLCP, getTTFB } from 'web-vitals';
+import { onCLS, onFCP, onINP, onLCP, onTTFB } from 'web-vitals';
 
 interface VitalsData {
   LCP?: number;
-  FID?: number;
+  INP?: number;
   CLS?: number;
   TTFB?: number;
   FCP?: number;
@@ -16,27 +16,27 @@ export function useWebVitals() {
     const vitals: VitalsData = {};
 
     // Collect Core Web Vitals
-    getLCP(metric => {
+    onLCP(metric => {
       vitals.LCP = metric.value;
       trackVitals(vitals);
     });
 
-    getFID(metric => {
-      vitals.FID = metric.value;
+    onINP(metric => {
+      vitals.INP = metric.value;
       trackVitals(vitals);
     });
 
-    getCLS(metric => {
+    onCLS(metric => {
       vitals.CLS = metric.value;
       trackVitals(vitals);
     });
 
-    getTTFB(metric => {
+    onTTFB(metric => {
       vitals.TTFB = metric.value;
       trackVitals(vitals);
     });
 
-    getFCP(metric => {
+    onFCP(metric => {
       vitals.FCP = metric.value;
       trackVitals(vitals);
     });
@@ -63,9 +63,9 @@ function trackVitals(vitals: VitalsData) {
       });
     }
 
-    if (vitals.FID && vitals.FID > 100) {
-      gtag('event', 'page_view_with_poor_fid', {
-        value: vitals.FID,
+    if (vitals.INP && vitals.INP > 200) {
+      gtag('event', 'page_view_with_poor_inp', {
+        value: vitals.INP,
       });
     }
 

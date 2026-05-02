@@ -109,7 +109,8 @@ model User {
   projects      Project[]       @relation("ProjectCreator")
   proposals     Proposal[]
   orders        Order[]
-  reviews       Review[]
+  authoredReviews Review[] @relation("ReviewAuthor")
+  receivedReviews Review[] @relation("ReviewTarget")
   wallet        Wallet?
   transactions  Transaction[]
   withdrawals   WithdrawalRequest[]
@@ -207,7 +208,13 @@ model Order {
   stripePaymentIntentId String?
   stripeSessionId String?
   
+  razorpayPaymentId String?
+  
   transactionId String?
+  
+  paidAt        DateTime?
+  
+  reviews       Review[]
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -269,6 +276,8 @@ model TemplatePurchase {
   stripePaymentIntentId String?
   stripeSessionId String?
   
+  razorpayPaymentId String?
+  
   transactionId String?
   
   fileDownloadUrl String?
@@ -307,13 +316,21 @@ model Review {
   rating        Int
   comment       String    @db.Text
   
-  reviewerId    String
-  reviewer      User      @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  orderId       String?
+  order         Order?    @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  
+  authorId      String
+  author        User      @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  
+  targetId      String
+  target        User      @relation("ReviewTarget", fields: [targetId], references: [id], onDelete: Cascade)
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  @@index(reviewerId)
+  @@index(orderId)
+  @@index(authorId)
+  @@index(targetId)
 }
 
 model Wallet {
@@ -388,6 +405,11 @@ enum NotificationType {
   TEMPLATE_REJECTED
   WITHDRAWAL_APPROVED
   WITHDRAWAL_REJECTED
+  NEW_REVIEW
+  PURCHASE_COMPLETED
+  TEMPLATE_SOLD
+  PAYMENT_RECEIVED
+  PAYMENT_FAILED
 }
 
 model Conversation {
@@ -473,7 +495,7 @@ model AdminLog {
   id            String    @id @default(cuid())
   action        AdminActionType
   adminId       String
-  admin         User      @relation("AdminLogs", fields: [adminId], references: [id], onDelete: SetNull)
+  admin         User      @relation("AdminLogs", fields: [adminId], references: [id], onDelete: Cascade)
   targetId      String?
   targetType    String?
   description   String    @db.Text

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -25,12 +27,11 @@ export async function GET(request: NextRequest) {
       where.OR = [
         { title: { contains: query, mode: 'insensitive' } },
         { description: { contains: query, mode: 'insensitive' } },
-        { requiredSkills: { hasSome: [query] } },
+        { skills: { hasSome: [query] } },
       ];
     }
 
     let orderBy: any = { createdAt: 'desc' };
-
     if (sortBy === 'budget-low') orderBy = { budget: 'asc' };
     else if (sortBy === 'budget-high') orderBy = { budget: 'desc' };
     else if (sortBy === 'ending-soon') orderBy = { deadline: 'asc' };
@@ -44,8 +45,10 @@ export async function GET(request: NextRequest) {
         budget: true,
         status: true,
         deadline: true,
-        requiredSkills: true,
-        proposalCount: true,
+        skills: true,
+        _count: {
+          select: { proposals: true },
+        },
         createdAt: true,
         creator: {
           select: {
@@ -62,10 +65,14 @@ export async function GET(request: NextRequest) {
     });
 
     const total = await db.project.count({ where });
+    const projectResults = projects.map((project) => ({
+      ...project,
+      proposalCount: project._count.proposals,
+    }));
 
     return NextResponse.json(
       {
-        projects,
+        projects: projectResults,
         total,
         limit,
         offset,

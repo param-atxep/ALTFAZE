@@ -1,7 +1,6 @@
 'use server';
 
-import { getServerSession } from 'next-auth';
-import { authConfig } from '@/lib/auth.config';
+import { auth } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import Stripe from 'stripe';
@@ -18,7 +17,7 @@ export async function initiateTemplatePayment(
   sellerId: string
 ) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -70,7 +69,7 @@ export async function initiateTemplatePayment(
 
 export async function getWalletBalance() {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -104,7 +103,7 @@ export async function requestWithdrawal(data: {
   reason?: string;
 }) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -178,7 +177,7 @@ export async function requestWithdrawal(data: {
 
 export async function getWithdrawalHistory() {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -207,7 +206,7 @@ export async function getWithdrawalHistory() {
 
 export async function getTransactionHistory(limit = 50) {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -236,7 +235,7 @@ export async function getTransactionHistory(limit = 50) {
 
 export async function getEscrowBalance() {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };
@@ -275,7 +274,7 @@ export async function getEscrowBalance() {
 
 export async function getPurchaseHistory() {
   try {
-    const session = await getServerSession(authConfig);
+    const session = await auth();
 
     if (!session?.user?.email) {
       return { error: 'Unauthorized' };

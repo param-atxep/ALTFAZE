@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -38,7 +40,7 @@ export async function GET(request: NextRequest) {
     if (sortBy === 'price-low') orderBy = { price: 'asc' };
     else if (sortBy === 'price-high') orderBy = { price: 'desc' };
     else if (sortBy === 'rating') orderBy = { rating: 'desc' };
-    else if (sortBy === 'popular') orderBy = { purchaseCount: 'desc' };
+    else if (sortBy === 'popular') orderBy = { downloads: 'desc' };
 
     const templates = await db.template.findMany({
       where,
@@ -46,10 +48,10 @@ export async function GET(request: NextRequest) {
         id: true,
         title: true,
         description: true,
-        image: true,
+        imageUrl: true,
         price: true,
         rating: true,
-        purchaseCount: true,
+        downloads: true,
         category: true,
         createdAt: true,
         creator: {

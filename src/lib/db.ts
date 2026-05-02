@@ -15,6 +15,7 @@ export const db =
   });
 
 export const prisma = db;
+export const isDatabaseUrlConfigured = Boolean(process.env.DATABASE_URL);
 export default db;
 
 if (process.env.NODE_ENV !== "production") {

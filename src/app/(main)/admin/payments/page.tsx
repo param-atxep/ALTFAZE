@@ -25,6 +25,7 @@ interface TemplatePurchase {
   amount: number;
   status: string;
   paymentStatus: string;
+  escrowStatus: string;
   buyer: { id: string; name: string; email: string };
   seller: { id: string; name: string; email: string };
   template: { id: string; title: string };
@@ -79,13 +80,13 @@ export default function AdminPayments() {
       {/* Type Selector */}
       <div className="flex gap-2">
         <Button
-          variant={paymentType === "orders" ? "default" : "outline"}
+          variant={paymentType === "orders" ? "primary" : "outline"}
           onClick={() => setPaymentType("orders")}
         >
           Project Orders
         </Button>
         <Button
-          variant={paymentType === "templates" ? "default" : "outline"}
+          variant={paymentType === "templates" ? "primary" : "outline"}
           onClick={() => setPaymentType("templates")}
         >
           Template Sales

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
-import { slugify } from '@/lib/performance';
+import { slugify } from '@/lib/seo';
 
 export async function GET(
   request: NextRequest,
@@ -21,7 +21,7 @@ export async function GET(
         reviewCount: true,
         skills: true,
         createdAt: true,
-        isBanned: false,
+        isBanned: true,
       },
     });
 
@@ -47,13 +47,13 @@ export async function GET(
           select: {
             id: true,
             title: true,
-            image: true,
+            imageUrl: true,
             price: true,
             rating: true,
-            purchaseCount: true,
+            downloads: true,
           },
           take: 6,
-          orderBy: { purchaseCount: 'desc' },
+          orderBy: { downloads: 'desc' },
         }),
       ]);
 

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma, isDatabaseUrlConfigured } from '@/lib/db';
 import { generateBreadcrumbSchema, generateJsonLd, generateMetadata as generateSEOMetadata, generateProductSchema } from '@/lib/seo';
 import Image from 'next/image';
 import { Star, Heart, ShoppingCart, ExternalLink } from 'lucide-react';
@@ -43,6 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  if (!isDatabaseUrlConfigured) return [];
+
   // Pre-render top 100 templates for performance
   const templates = await prisma.template.findMany({
     where: { status: 'APPROVED' },
@@ -178,7 +180,7 @@ export default async function TemplatePage({ params }: Props) {
                     {template.creator.image && (
                       <Image
                         src={template.creator.image}
-                        alt={template.creator.name}
+                        alt={template.creator.name ?? 'Creator'}
                         width={40}
                         height={40}
                         className="rounded-full"

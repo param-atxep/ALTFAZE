@@ -37,42 +37,42 @@ export default function BrowseProjectsPage() {
   const [budgetRange, setBudgetRange] = useState("all");
 
   useEffect(() => {
-    loadProjects();
-  }, [category, budgetRange]);
+    const loadProjects = async () => {
+      setLoading(true);
+      try {
+        let minBudget, maxBudget;
+        
+        if (budgetRange === "0-100") {
+          minBudget = 0;
+          maxBudget = 100;
+        } else if (budgetRange === "100-500") {
+          minBudget = 100;
+          maxBudget = 500;
+        } else if (budgetRange === "500-1000") {
+          minBudget = 500;
+          maxBudget = 1000;
+        } else if (budgetRange === "1000+") {
+          minBudget = 1000;
+        }
 
-  const loadProjects = async () => {
-    setLoading(true);
-    try {
-      let minBudget, maxBudget;
-      
-      if (budgetRange === "0-100") {
-        minBudget = 0;
-        maxBudget = 100;
-      } else if (budgetRange === "100-500") {
-        minBudget = 100;
-        maxBudget = 500;
-      } else if (budgetRange === "500-1000") {
-        minBudget = 500;
-        maxBudget = 1000;
-      } else if (budgetRange === "1000+") {
-        minBudget = 1000;
+        const results = await getAvailableProjects(category, minBudget, maxBudget);
+        
+        const filtered = results.filter((p: any) =>
+          search ? p.title.toLowerCase().includes(search.toLowerCase()) ||
+                  p.description.toLowerCase().includes(search.toLowerCase())
+          : true
+        );
+        
+        setProjects(filtered || []);
+      } catch (error) {
+        toast.error("Failed to load projects");
+      } finally {
+        setLoading(false);
       }
+    };
 
-      const results = await getAvailableProjects(category, minBudget, maxBudget);
-      
-      const filtered = results.filter((p: any) =>
-        search ? p.title.toLowerCase().includes(search.toLowerCase()) ||
-                p.description.toLowerCase().includes(search.toLowerCase())
-        : true
-      );
-      
-      setProjects(filtered || []);
-    } catch (error) {
-      toast.error("Failed to load projects");
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadProjects();
+  }, [category, budgetRange, search]);
 
   return (
     <div className="w-full space-y-8 p-8">

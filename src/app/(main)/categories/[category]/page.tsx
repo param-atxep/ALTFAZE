@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { prisma } from '@/lib/db';
+import { prisma, isDatabaseUrlConfigured } from '@/lib/db';
 import { generateBreadcrumbSchema, generateJsonLd, generateMetadata as generateSEOMetadata } from '@/lib/seo';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  if (!isDatabaseUrlConfigured) return [];
+
   const categories = await prisma.project.findMany({
     select: { category: true },
     distinct: ['category'],
@@ -158,7 +160,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-lg font-bold text-slate-900">${template.price}</span>
                         <span className="text-xs text-slate-600">
-                          ⭐ {template.rating ? parseFloat(template.rating).toFixed(1) : '0'}
+                          ⭐ {template.rating ? Number(template.rating).toFixed(1) : '0'}
                         </span>
                       </div>
 
@@ -187,7 +189,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
                   return (
                     <Link key={pageNum} href={`/categories/${params.category}?page=${pageNum}&sort=${sort}`}>
-                      <Button variant={pageNum === page ? 'default' : 'outline'}>{pageNum}</Button>
+                      <Button variant={pageNum === page ? 'primary' : 'outline'}>{pageNum}</Button>
                     </Link>
                   );
                 })}

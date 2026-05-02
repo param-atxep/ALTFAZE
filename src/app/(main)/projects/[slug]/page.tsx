@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma, isDatabaseUrlConfigured } from '@/lib/db';
 import { buildProjectPath, generateBreadcrumbSchema, generateJsonLd, generateMetadata as generateSEOMetadata, slugify } from '@/lib/seo';
 import Image from 'next/image';
 import { Clock, MapPin, DollarSign, Users, CheckCircle, MessageCircle } from 'lucide-react';
@@ -40,6 +40,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export async function generateStaticParams() {
+  if (!isDatabaseUrlConfigured) return [];
+
   // Pre-render top 50 active projects
   const projects = await prisma.project.findMany({
     where: {
@@ -47,7 +49,7 @@ export async function generateStaticParams() {
         in: ['OPEN', 'IN_PROGRESS'],
       },
     },
-    select: { slug: true },
+    select: { id: true, title: true },
     take: 50,
     orderBy: { createdAt: 'desc' },
   });
@@ -63,7 +65,7 @@ export default async function ProjectPage({ params }: Props) {
       OR: [{ id: params.slug }, { id: params.slug.split('-').at(-1) || params.slug }],
     },
     include: {
-      client: {
+      creator: {
         select: {
           id: true,
           name: true,
@@ -147,8 +149,8 @@ export default async function ProjectPage({ params }: Props) {
                   <p className="text-xl font-bold text-slate-900">{project._count.proposals}</p>
                 </div>
                 <div>
-                  <p className="text-slate-600 text-sm">Experience</p>
-                  <p className="text-xl font-bold text-slate-900">{project.experienceLevel || 'Any'}</p>
+                  <p className="text-slate-600 text-sm">Skills</p>
+                  <p className="text-xl font-bold text-slate-900">{project.skills?.join(', ') || 'Any'}</p>
                 </div>
               </div>
 
@@ -173,13 +175,6 @@ export default async function ProjectPage({ params }: Props) {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                {project.attachments && project.attachments.length > 0 && (
-                  <div>
-                    <p className="text-sm text-slate-600 mb-2">📎 Attachments ({project.attachments.length})</p>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
 
@@ -202,12 +197,12 @@ export default async function ProjectPage({ params }: Props) {
             {/* Client Card */}
             <div className="bg-white rounded-lg p-6 shadow-sm mb-6">
               <h3 className="font-semibold text-lg mb-4">About Client</h3>
-              <Link href={`/freelancers/${project.client.slug || project.client.id}`}>
+              <Link href={`/freelancers/${project.creator.slug || project.creator.id}`}>
                 <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 transition mb-4">
-                  {project.client.image && (
+                  {project.creator.image && (
                     <Image
-                      src={project.client.image}
-                      alt={project.client.name}
+                      src={project.creator.image}
+                      alt={project.creator.name ?? 'Client'}
                       width={48}
                       height={48}
                       className="rounded-full"
@@ -215,8 +210,8 @@ export default async function ProjectPage({ params }: Props) {
                     />
                   )}
                   <div>
-                    <p className="font-medium text-slate-900">{project.client.name}</p>
-                    <p className="text-sm text-slate-600">⭐ {project.client.rating || 0}</p>
+                    <p className="font-medium text-slate-900">{project.creator.name ?? 'Client'}</p>
+                    <p className="text-sm text-slate-600">⭐ {project.creator.rating || 0}</p>
                   </div>
                 </div>
               </Link>

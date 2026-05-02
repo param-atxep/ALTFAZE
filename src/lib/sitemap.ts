@@ -1,6 +1,13 @@
 import { db } from "@/lib/db";
 import { buildProjectPath } from "@/lib/seo";
 
+type SitemapUrl = {
+  url: string;
+  priority: string;
+  changefreq: string;
+  lastmod?: string;
+};
+
 function escapeXml(value: string) {
   return value
     .replace(/&/g, '&amp;')
@@ -42,7 +49,7 @@ export async function generateSitemapXML(): Promise<string> {
 
   const uniqueCategories = [...new Set(categories.map(p => p.category))];
 
-  const staticPages = [
+  const staticPages: SitemapUrl[] = [
     { url: '/', priority: '1.0', changefreq: 'daily' },
     { url: '/templates', priority: '0.9', changefreq: 'daily' },
     { url: '/freelancers', priority: '0.9', changefreq: 'daily' },
@@ -54,35 +61,35 @@ export async function generateSitemapXML(): Promise<string> {
     { url: '/about', priority: '0.7', changefreq: 'monthly' },
   ];
 
-  const templateUrls = templates.map(t => ({
+  const templateUrls: SitemapUrl[] = templates.map(t => ({
     url: `/templates/${t.slug}`,
     lastmod: t.updatedAt.toISOString(),
     priority: '0.8',
     changefreq: 'weekly',
   }));
 
-  const freelancerUrls = freelancers.map(f => ({
+  const freelancerUrls: SitemapUrl[] = freelancers.map(f => ({
     url: `/freelancers/${f.slug}`,
     lastmod: f.updatedAt.toISOString(),
     priority: '0.7',
     changefreq: 'weekly',
   }));
 
-  const projectUrls = projects.map(p => ({
+  const projectUrls: SitemapUrl[] = projects.map(p => ({
     url: buildProjectPath(p.title, p.id),
     lastmod: p.updatedAt.toISOString(),
     priority: '0.8',
     changefreq: 'daily',
   }));
 
-  const blogUrls = blogs.map(post => ({
+  const blogUrls: SitemapUrl[] = blogs.map(post => ({
     url: `/blog/${post.slug}`,
     lastmod: post.updatedAt.toISOString(),
     priority: '0.7',
     changefreq: 'weekly',
   }));
 
-  const categoryUrls = uniqueCategories.map(cat => ({
+  const categoryUrls: SitemapUrl[] = uniqueCategories.map(cat => ({
     url: `/categories/${encodeURIComponent(cat)}`,
     priority: '0.7',
     changefreq: 'weekly',

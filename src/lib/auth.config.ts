@@ -1,4 +1,5 @@
-import type { NextAuthConfig } from "next-auth";
+import type { NextAuthOptions } from "next-auth";
+import type { Adapter } from "next-auth/adapters";
 import Credentials from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
@@ -11,7 +12,7 @@ const credentialsSchema = z.object({
 });
 
 export const authConfig = {
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(db) as Adapter,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
@@ -24,7 +25,6 @@ export const authConfig = {
   useSecureCookies: process.env.NODE_ENV === "production",
   pages: {
     signIn: "/auth/sign-in",
-    signUp: "/auth/sign-up",
     error: "/auth/error",
   },
   providers: [
@@ -82,4 +82,4 @@ export const authConfig = {
       return session;
     },
   },
-} satisfies NextAuthConfig;
+} satisfies NextAuthOptions;

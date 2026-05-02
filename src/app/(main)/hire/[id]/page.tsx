@@ -22,25 +22,25 @@ export default function SendHireRequestPage() {
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
+    const loadFreelancer = async () => {
+      try {
+        const result = await getFreelancer(freelancerId);
+        if ("error" in result) {
+          toast.error(result.error);
+          router.push("/hire");
+        } else {
+          setFreelancer(result);
+        }
+      } catch (error) {
+        toast.error("Failed to load freelancer");
+        router.push("/hire");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadFreelancer();
   }, [freelancerId]);
-
-  const loadFreelancer = async () => {
-    try {
-      const result = await getFreelancer(freelancerId);
-      if ("error" in result) {
-        toast.error(result.error);
-        router.push("/hire");
-      } else {
-        setFreelancer(result);
-      }
-    } catch (error) {
-      toast.error("Failed to load freelancer");
-      router.push("/hire");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSendRequest = async () => {
     if (!message.trim()) {

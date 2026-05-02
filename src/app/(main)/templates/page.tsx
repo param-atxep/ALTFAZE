@@ -43,26 +43,26 @@ export default function TemplatesPage() {
   const [selectedPriceRange, setSelectedPriceRange] = useState<number>(0);
 
   useEffect(() => {
+    const loadTemplates = async () => {
+      setLoading(true);
+      try {
+        const priceRange = PRICE_RANGES[selectedPriceRange];
+        const results = await getTemplates(
+          selectedCategory,
+          priceRange.min,
+          priceRange.max,
+          search || undefined
+        );
+        setTemplates(results || []);
+      } catch (error) {
+        toast.error("Failed to load templates");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadTemplates();
   }, [search, selectedCategory, selectedPriceRange]);
-
-  const loadTemplates = async () => {
-    setLoading(true);
-    try {
-      const priceRange = PRICE_RANGES[selectedPriceRange];
-      const results = await getTemplates(
-        selectedCategory,
-        priceRange.min,
-        priceRange.max,
-        search || undefined
-      );
-      setTemplates(results || []);
-    } catch (error) {
-      toast.error("Failed to load templates");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   return (
     <div className="w-full space-y-8 p-8">

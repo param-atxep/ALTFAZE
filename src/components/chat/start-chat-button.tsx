@@ -35,7 +35,7 @@ export function StartChatButton({
       onClick={handleStartChat}
       disabled={isLoading}
       className={className}
-      variant="default"
+      variant="primary"
       size="sm"
     >
       {isLoading ? (

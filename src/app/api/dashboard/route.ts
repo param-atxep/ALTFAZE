@@ -3,6 +3,8 @@ import { auth } from '@/lib/auth';
 import { db } from '@/lib/db';
 import { logger } from '@/lib/logger';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
     const session = await auth();
@@ -27,14 +29,14 @@ export async function GET(request: NextRequest) {
         }),
         db.order.findMany({
           where: { clientId: session.user.id },
-          include: { project: true, freelancer: { select: { name: true, image: true } } },
+          include: { project: true },
           orderBy: { createdAt: 'desc' },
           take: 5,
         }),
         db.wallet.findUnique({ where: { userId: session.user.id } }),
         db.templatePurchase.findMany({
           where: { buyerId: session.user.id },
-          include: { template: { select: { title: true, image: true } } },
+          include: { template: { select: { title: true, imageUrl: true } } },
           orderBy: { createdAt: 'desc' },
           take: 5,
         }),

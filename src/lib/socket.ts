@@ -4,6 +4,11 @@ import { Server as SocketIOServer, Socket } from "socket.io";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
+type AuthenticatedSocket = Socket & {
+  userId?: string;
+  userEmail?: string | null;
+};
+
 declare global {
   var io: SocketIOServer | undefined;
 }
@@ -30,15 +35,15 @@ const initializeSocket = (httpServer: HTTPServer) => {
 
         // Verify token (simplified - use your actual auth verification)
         const user = await db.user.findFirst({
-          where: { id: socket.handshake.auth.userId },
+          where: { id: (socket as AuthenticatedSocket).handshake.auth.userId },
         });
 
         if (!user) {
           return next(new Error("User not found"));
         }
 
-        socket.userId = user.id;
-        socket.userEmail = user.email;
+        (socket as AuthenticatedSocket).userId = user.id;
+        (socket as AuthenticatedSocket).userEmail = user.email;
         next();
       } catch (error) {
         next(new Error("Authentication failed"));
@@ -46,7 +51,7 @@ const initializeSocket = (httpServer: HTTPServer) => {
     });
 
     // Connection handler
-    io.on("connection", async (socket: Socket & { userId?: string; userEmail?: string }) => {
+    io.on("connection", async (socket: AuthenticatedSocket) => {
       console.log(`User connected: ${socket.userId}`);
 
       // Set user online

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { prisma } from '@/lib/db';
+import { prisma, isDatabaseUrlConfigured } from '@/lib/db';
 import { generateBreadcrumbSchema, generateJsonLd, generateMetadata as generateSEOMetadata, generatePersonSchema } from '@/lib/seo';
 import Image from 'next/image';
 import { Star, MapPin, Globe, Award, Users } from 'lucide-react';
@@ -33,12 +33,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     image: freelancer.image || `${process.env.NEXT_PUBLIC_BASE_URL}/default-avatar.png`,
     url: `/freelancers/${freelancer.slug}`,
     type: 'profile',
-    keywords: ['freelancer', freelancer.name, 'hire'],
+    keywords: ['freelancer', freelancer.name ?? '', 'hire'],
     canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/freelancers/${freelancer.slug}`,
   });
 }
 
 export async function generateStaticParams() {
+  if (!isDatabaseUrlConfigured) return [];
+
   // Pre-render top 100 freelancers by rating
   const freelancers = await prisma.user.findMany({
     where: { role: 'FREELANCER' },
@@ -78,10 +80,10 @@ export default async function FreelancerPage({ params }: Props) {
   const canonicalUrl = `${siteUrl}/freelancers/${freelancer.slug}`;
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Freelancers', url: `${siteUrl}/freelancers` },
-    { name: freelancer.name, url: canonicalUrl },
+    { name: freelancer.name ?? '', url: canonicalUrl },
   ]);
   const personSchema = generatePersonSchema({
-    name: freelancer.name,
+    name: freelancer.name ?? '',
     url: canonicalUrl,
     image: freelancer.image || undefined,
     description: freelancer.bio || undefined,
@@ -105,7 +107,7 @@ export default async function FreelancerPage({ params }: Props) {
               <div className="relative w-32 h-32 rounded-lg overflow-hidden border-4 border-white">
                 <Image
                   src={freelancer.image || '/placeholder.png'}
-                  alt={freelancer.name}
+                  alt={freelancer.name ?? 'Freelancer profile'}
                   fill
                   className="object-cover"
                   sizes="128px"

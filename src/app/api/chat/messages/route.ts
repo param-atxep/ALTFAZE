@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       await db.notification.create({
         data: {
           userId: participantId,
-          type: 'NEW_MESSAGE',
+          type: 'MESSAGE',
           message: validated.data.text.substring(0, 100),
           actionUrl: `/chat/${validated.data.conversationId}`,
         },

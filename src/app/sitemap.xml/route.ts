@@ -1,6 +1,7 @@
 import { generateSitemapXML } from "@/lib/sitemap";
 import { NextResponse } from "next/server";
 
+export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
 
 export async function GET() {

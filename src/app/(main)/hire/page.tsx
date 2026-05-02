@@ -17,25 +17,25 @@ export default function BrowseFreelancersPage() {
   const [minRating, setMinRating] = useState<number>();
 
   useEffect(() => {
-    loadFreelancers();
-  }, [minRating]);
+    const loadFreelancers = async () => {
+      setLoading(true);
+      try {
+        const results = await getFreelancers(undefined, minRating);
+        const filtered = results.filter((f: any) =>
+          search ? f.name.toLowerCase().includes(search.toLowerCase()) ||
+                  f.skills?.some((s: string) => s.toLowerCase().includes(search.toLowerCase()))
+          : true
+        );
+        setFreelancers(filtered || []);
+      } catch (error) {
+        toast.error("Failed to load freelancers");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const loadFreelancers = async () => {
-    setLoading(true);
-    try {
-      const results = await getFreelancers(undefined, minRating);
-      const filtered = results.filter((f: any) =>
-        search ? f.name.toLowerCase().includes(search.toLowerCase()) ||
-                f.skills?.some((s: string) => s.toLowerCase().includes(search.toLowerCase()))
-        : true
-      );
-      setFreelancers(filtered || []);
-    } catch (error) {
-      toast.error("Failed to load freelancers");
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadFreelancers();
+  }, [minRating, search]);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -76,19 +76,19 @@ export default function BrowseFreelancersPage() {
 
         <div className="flex gap-2">
           <Button
-            variant={minRating === undefined ? "default" : "outline"}
+            variant={minRating === undefined ? "primary" : "outline"}
             onClick={() => setMinRating(undefined)}
           >
             All Ratings
           </Button>
           <Button
-            variant={minRating === 4 ? "default" : "outline"}
+            variant={minRating === 4 ? "primary" : "outline"}
             onClick={() => setMinRating(4)}
           >
             4+ Stars
           </Button>
           <Button
-            variant={minRating === 5 ? "default" : "outline"}
+            variant={minRating === 5 ? "primary" : "outline"}
             onClick={() => setMinRating(5)}
           >
             5 Stars

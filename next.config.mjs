@@ -79,9 +79,6 @@ const nextConfig = {
         ],
       },
     ]
-  },
-  turbopack: {
-    root: path.join(__dirname)
   }
 }
 

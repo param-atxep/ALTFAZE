@@ -58,6 +58,8 @@ export function generateMetadata(config: SEOConfig): Metadata {
   const canonicalUrl = toAbsoluteUrl(canonical || url, '/');
   const fullTitle = `${title} | ALTFaze`;
   const imageUrl = toAbsoluteUrl(image || '/og-image.png');
+  const openGraphType =
+    type === 'product' ? 'website' : (type as 'website' | 'article' | 'profile');
 
   return {
     title: fullTitle,
@@ -69,7 +71,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
       title: fullTitle,
       description,
       url: resolvedUrl,
-      type,
+      type: openGraphType,
       images: [
         {
           url: imageUrl,

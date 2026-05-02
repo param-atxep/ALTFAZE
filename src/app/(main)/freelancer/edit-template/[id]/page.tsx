@@ -69,33 +69,33 @@ export default function EditTemplatePage() {
   });
 
   useEffect(() => {
+    const loadTemplate = async () => {
+      try {
+        const result = await getTemplate(templateId);
+        if ("error" in result) {
+          toast.error(result.error);
+          router.push("/freelancer/dashboard");
+        } else {
+          setFormData({
+            title: result.title,
+            description: result.description,
+            price: String(result.price),
+            category: result.category,
+            imageUrl: result.imageUrl || "",
+            fileUrl: result.fileUrl || "",
+          });
+          setSelectedTech(result.techStack || []);
+          setSelectedFeatures(result.features || []);
+        }
+      } catch (error) {
+        toast.error("Failed to load template");
+      } finally {
+        setLoading(false);
+      }
+    };
+
     loadTemplate();
   }, [templateId]);
-
-  const loadTemplate = async () => {
-    try {
-      const result = await getTemplate(templateId);
-      if ("error" in result) {
-        toast.error(result.error);
-        router.push("/freelancer/dashboard");
-      } else {
-        setFormData({
-          title: result.title,
-          description: result.description,
-          price: String(result.price),
-          category: result.category,
-          imageUrl: result.imageUrl || "",
-          fileUrl: result.fileUrl || "",
-        });
-        setSelectedTech(result.techStack || []);
-        setSelectedFeatures(result.features || []);
-      }
-    } catch (error) {
-      toast.error("Failed to load template");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>

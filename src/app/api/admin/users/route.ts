@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import type { AdminActionType } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 export async function GET(req: Request) {
@@ -101,7 +102,7 @@ export async function POST(req: Request) {
     }
 
     let result;
-    let actionType = "OTHER";
+    let actionType: AdminActionType = "OTHER";
 
     if (action === "block") {
       // Implement block user logic (add field to User model or use soft delete)

@@ -30,9 +30,9 @@ export default function ClientDashboard() {
       ]);
 
       setDashboard(dashData);
-      setProjects(projData);
-      setPurchases(purchData);
-      setTransactions(transData);
+      setProjects(Array.isArray(projData) ? projData : []);
+      setPurchases(Array.isArray(purchData) ? purchData : []);
+      setTransactions(Array.isArray(transData) ? transData : []);
     } catch (error) {
       toast.error("Failed to load dashboard");
     } finally {

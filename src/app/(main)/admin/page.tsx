@@ -72,7 +72,14 @@ export default function AdminDashboard() {
     );
   }
 
-  const stats = data?.stats || {};
+  const stats: DashboardData['stats'] = data?.stats ?? {
+    totalUsers: 0,
+    totalFreelancers: 0,
+    totalClients: 0,
+    totalProjects: 0,
+    totalOrders: 0,
+    totalRevenue: 0,
+  };
 
   return (
     <div className="space-y-8 p-8">

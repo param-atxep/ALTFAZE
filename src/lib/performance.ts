@@ -29,10 +29,11 @@ export function reportPerformanceMetrics(metrics: PerformanceMetrics) {
   if (typeof window === 'undefined') return;
 
   // Send to analytics
-  if (window.gtag) {
+  const gtag = (window as any).gtag;
+  if (gtag) {
     Object.entries(metrics).forEach(([metric, value]) => {
       if (value !== undefined) {
-        window.gtag('event', metric, {
+        gtag('event', metric, {
           value: Math.round(value),
           event_category: 'Web Vitals',
         });
@@ -98,8 +99,9 @@ export interface PageViewData {
 export function trackPageView(data: PageViewData) {
   if (typeof window === 'undefined') return;
 
-  if (window.gtag) {
-    window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
+  const gtag = (window as any).gtag;
+  if (gtag) {
+    gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
       page_title: data.title,
       page_path: data.path,
       referrer: data.referrer,
@@ -117,8 +119,9 @@ export interface ConversionData {
 export function trackConversion(data: ConversionData) {
   if (typeof window === 'undefined') return;
 
-  if (window.gtag) {
-    window.gtag('event', 'purchase', {
+  const gtag = (window as any).gtag;
+  if (gtag) {
+    gtag('event', 'purchase', {
       transaction_id: data.transactionId,
       value: data.value,
       currency: data.currency,
