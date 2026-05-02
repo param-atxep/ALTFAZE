@@ -18,7 +18,7 @@ import { toast } from "sonner";
 export default function EarningsPage() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [filterMonth, setFilterMonth] = useState<string>();
+  const [filterMonth, setFilterMonth] = useState<string>("all-time");
 
   useEffect(() => {
     loadStats();
@@ -183,7 +183,7 @@ export default function EarningsPage() {
                 <SelectValue placeholder="All Time" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Time</SelectItem>
+                <SelectItem value="all-time">All Time</SelectItem>
                 <SelectItem value="june">June 2024</SelectItem>
                 <SelectItem value="may">May 2024</SelectItem>
                 <SelectItem value="april">April 2024</SelectItem>

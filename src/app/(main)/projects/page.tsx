@@ -33,16 +33,20 @@ export default function BrowseProjectsPage() {
   const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>();
-  const [budgetRange, setBudgetRange] = useState("all");
+  const [category, setCategory] = useState<string | undefined>("all");
+  const [budgetRange, setBudgetRange] = useState("budget-all");
 
   useEffect(() => {
     const loadProjects = async () => {
       setLoading(true);
       try {
         let minBudget, maxBudget;
+        const categoryFilter = category === "all" ? undefined : category;
         
-        if (budgetRange === "0-100") {
+        if (budgetRange === "budget-all" || budgetRange === "all") {
+          minBudget = undefined;
+          maxBudget = undefined;
+        } else if (budgetRange === "0-100") {
           minBudget = 0;
           maxBudget = 100;
         } else if (budgetRange === "100-500") {
@@ -55,7 +59,7 @@ export default function BrowseProjectsPage() {
           minBudget = 1000;
         }
 
-        const results = await getAvailableProjects(category, minBudget, maxBudget);
+        const results = await getAvailableProjects(categoryFilter, minBudget, maxBudget);
         
         const filtered = results.filter((p: any) =>
           search ? p.title.toLowerCase().includes(search.toLowerCase()) ||
@@ -99,7 +103,7 @@ export default function BrowseProjectsPage() {
             <SelectValue placeholder="All Categories" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Categories</SelectItem>
+            <SelectItem value="all">All Categories</SelectItem>
             {CATEGORIES.map((cat) => (
               <SelectItem key={cat} value={cat}>
                 {cat}
@@ -113,7 +117,7 @@ export default function BrowseProjectsPage() {
             <SelectValue placeholder="Budget Range" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Budgets</SelectItem>
+            <SelectItem value="budget-all">All Budgets</SelectItem>
             <SelectItem value="0-100">$0 - $100</SelectItem>
             <SelectItem value="100-500">$100 - $500</SelectItem>
             <SelectItem value="500-1000">$500 - $1000</SelectItem>

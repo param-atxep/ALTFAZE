@@ -39,6 +39,8 @@ NEXT_PUBLIC_APP_NAME="ALTFaze"
 NEXT_PUBLIC_APP_DOMAIN="altfaze.in"
 ```
 
+**For comprehensive environment setup**, see [ENV_SETUP.md](ENV_SETUP.md)
+
 ### Step 4: Database Setup
 ```bash
 # Run Prisma migrations
@@ -56,8 +58,59 @@ npm run dev
 Visit [http://localhost:3000](http://localhost:3000)
 
 ---
+---
+## 🔐 Authentication Flow
+
+### Signup & Login
+1. **User signs up** with email/password
+   - Password hashed with bcryptjs
+   - Email verified before using platform
+
+2. **User selects role** (if first login)
+   - Visit `/auth/select-role`
+   - Choose: CLIENT or FREELANCER
+   - Can change later in settings
+
+3. **OAuth Providers** (Optional Setup)
+   - **Google**: Setup in Step 6
+   - **GitHub**: Setup in Step 6
+   - Auto-creates account on first login
+
+### Session Management
+- JWT-based sessions
+- 7-day expiration (configurable)
+- Secure HTTP-only cookies
 
 ## 📋 Key Changes Made
+## 🔌 Optional: Setup OAuth Providers
+
+### Google OAuth Setup
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create new project
+3. Enable Google+ API
+4. Create OAuth 2.0 credentials for Web application
+5. Add authorized redirect URI:
+   ```
+   http://localhost:3000/api/auth/callback/google
+   ```
+6. Copy credentials to `.env.local`:
+   ```env
+   GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+   GOOGLE_CLIENT_SECRET="your-client-secret"
+   ```
+
+### GitHub OAuth Setup
+1. Go to [GitHub Settings → Developer Settings](https://github.com/settings/developers)
+2. Create new OAuth App
+3. Set Authorization callback URL:
+   ```
+   http://localhost:3000/api/auth/callback/github
+   ```
+4. Copy credentials to `.env.local`:
+   ```env
+   GITHUB_CLIENT_ID="your-client-id"
+   GITHUB_CLIENT_SECRET="your-client-secret"
+   ```
 
 ### ✅ Branding Replaced
 - ✓ All "Linkify" references → "ALTFaze"

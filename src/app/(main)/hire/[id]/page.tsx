@@ -21,6 +21,7 @@ export default function SendHireRequestPage() {
   const [message, setMessage] = useState("");
   const [sending, setSending] = useState(false);
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadFreelancer = async () => {
       try {

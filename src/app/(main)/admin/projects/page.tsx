@@ -35,7 +35,7 @@ export default function AdminProjects() {
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationData>({ total: 0, page: 1, limit: 20, totalPages: 0 });
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<string>("all-statuses");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
@@ -62,7 +62,8 @@ export default function AdminProjects() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      fetchProjects(1, searchQuery, statusFilter);
+      const statusValue = statusFilter === "all-statuses" ? "" : statusFilter;
+      fetchProjects(1, searchQuery, statusValue);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, statusFilter]);
@@ -109,7 +110,7 @@ export default function AdminProjects() {
               <SelectValue placeholder="Filter by status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all-statuses">All Statuses</SelectItem>
               <SelectItem value="OPEN">Open</SelectItem>
               <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
               <SelectItem value="COMPLETED">Completed</SelectItem>

@@ -7,7 +7,7 @@ export const Icons = {
             <path d="M736.024 862.258L1101.46 408.859C1107.79 401.008 1102.2 389.328 1092.12 389.328H822.67C792.245 389.328 763.476 403.179 744.501 426.961L412.745 842.774C406.475 850.634 412.071 862.258 422.126 862.258H736.024Z" fill="black" />
             <path d="M1113.35 882.258C1113.35 871.213 1104.4 862.258 1093.35 862.258H736.024V915.995C736.024 1081.68 870.338 1215.99 1036.02 1215.99H1093.35C1104.4 1215.99 1113.35 1207.04 1113.35 1195.99V882.258Z" fill="black" />
             <defs>
-                <radialGradient id="paint0_radial_133_317" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 800) rotate(90) scale(800)">
+                <radialGradient id="paint0_radial_133_317" cx="50%" cy="50%" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(800 800) rotate(90) scale(800)">
                     <stop stopColor="#FAFAFA" stopOpacity="0.85" />
                     <stop offset="1" stopColor="#FAFAFA" />
                 </radialGradient>

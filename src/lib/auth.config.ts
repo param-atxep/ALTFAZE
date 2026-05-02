@@ -1,6 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import type { Adapter } from "next-auth/adapters";
 import Credentials from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import GithubProvider from "next-auth/providers/github";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import { db } from "@/lib/db";
 import bcrypt from "bcryptjs";
@@ -65,12 +67,34 @@ export const authConfig = {
         };
       },
     }),
+    ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
+    ...(process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET
+      ? [
+          GithubProvider({
+            clientId: process.env.GITHUB_CLIENT_ID,
+            clientSecret: process.env.GITHUB_CLIENT_SECRET,
+            allowDangerousEmailAccountLinking: true,
+          }),
+        ]
+      : []),
   ],
   callbacks: {
-    async jwt({ token, user }: any) {
+    async jwt({ token, user, account }: any) {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.email = user.email;
+      }
+      if (account) {
+        token.provider = account.provider;
       }
       return token;
     },
@@ -78,8 +102,17 @@ export const authConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.role = token.role as string;
+        session.user.provider = token.provider;
       }
       return session;
+    },
+    async signIn({ user, account, profile }: any) {
+      // Allow signin if user exists or using OAuth
+      if (account && !user.id) {
+        // New OAuth user - will be created by adapter
+        return true;
+      }
+      return !!user.id;
     },
   },
 } satisfies NextAuthOptions;

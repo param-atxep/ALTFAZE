@@ -44,7 +44,7 @@ export default function AdminLogs() {
   const [logs, setLogs] = useState<AdminLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState<PaginationData>({ total: 0, page: 1, limit: 50, totalPages: 0 });
-  const [actionFilter, setActionFilter] = useState<string>("");
+  const [actionFilter, setActionFilter] = useState<string>("all-actions");
 
   const fetchLogs = async (page: number = 1, action: string = "") => {
     try {
@@ -67,7 +67,8 @@ export default function AdminLogs() {
   };
 
   useEffect(() => {
-    fetchLogs(1, actionFilter);
+    const actionValue = actionFilter === "all-actions" ? "" : actionFilter;
+    fetchLogs(1, actionValue);
   }, [actionFilter]);
 
   return (
@@ -88,7 +89,7 @@ export default function AdminLogs() {
               <SelectValue placeholder="Filter by action type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Actions</SelectItem>
+              <SelectItem value="all-actions">All Actions</SelectItem>
               <SelectItem value="USER_BLOCKED">User Blocked</SelectItem>
               <SelectItem value="USER_DELETED">User Deleted</SelectItem>
               <SelectItem value="TEMPLATE_APPROVED">Template Approved</SelectItem>

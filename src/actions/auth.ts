@@ -2,6 +2,7 @@
 
 import { db } from "@/lib/db";
 import { signIn } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
@@ -74,5 +75,24 @@ export async function signInAction(
     return { success: true };
   } catch (error) {
     return { error: "Invalid email or password" };
+  }
+}
+
+export async function setUserRole(role: "CLIENT" | "FREELANCER") {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return { error: "Not authenticated" };
+  }
+
+  try {
+    const updatedUser = await db.user.update({
+      where: { id: session.user.id },
+      data: { role },
+    });
+
+    return { success: true, user: updatedUser };
+  } catch (error) {
+    return { error: "Failed to set role" };
   }
 }

@@ -68,6 +68,7 @@ export default function EditTemplatePage() {
     fileUrl: "",
   });
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const loadTemplate = async () => {
       try {
