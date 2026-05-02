@@ -6,7 +6,7 @@ export default async function ChatPage() {
   const session = await auth();
 
   if (!session?.user) {
-    redirect("/auth/sign-in");
+    redirect("/login");
   }
 
   return (

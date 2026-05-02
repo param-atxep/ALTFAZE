@@ -8,14 +8,14 @@ import MagicBadge from "@/components/ui/magic-badge";
 import MagicCard from "@/components/ui/magic-card";
 import { COMPANIES, PROCESS } from "@/utils";
 import { REVIEWS } from "@/utils/constants/misc";
-import { getServerSession } from "next-auth/next";
 import { ArrowRightIcon, CreditCardIcon, StarIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 
 const HomePage = async () => {
 
-    const session = await getServerSession();
+    const session = await auth();
 
     return (
         <div className="overflow-x-hidden scrollbar-hide size-full">
@@ -46,7 +46,7 @@ const HomePage = async () => {
                         </p>
                         <div className="flex items-center justify-center whitespace-nowrap gap-4 z-50">
                             <Button asChild>
-                                <Link href={session?.user ? "/dashboard" : "/auth/sign-in"} className="flex items-center">
+                                <Link href={session?.user ? "/dashboard" : "/login"} className="flex items-center">
                                     Start Hiring Now
                                     <ArrowRightIcon className="w-4 h-4 ml-2" />
                                 </Link>
@@ -307,7 +307,7 @@ const HomePage = async () => {
                             </p>
                             <div className="mt-6">
                                 <Button asChild>
-                                    <Link href={session?.user ? "/dashboard" : "/auth/sign-up"} className="flex items-center">
+                                    <Link href={session?.user ? "/dashboard" : "/login"} className="flex items-center">
                                         Get Started Free
                                         <ArrowRightIcon className="w-4 h-4 ml-2" />
                                     </Link>

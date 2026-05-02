@@ -1,29 +1,25 @@
 "use server";
 
-import { db } from "@/lib";
-import { currentUser } from "@clerk/nextjs/server";
+import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 
 const getAuthStatus = async () => {
-    const user = await currentUser();
+    const session = await auth();
 
-    if (!user?.id || !user?.primaryEmailAddress?.emailAddress) {
+    if (!session?.user?.id || !session.user.email) {
         return { error: "User not found" };
     }
 
-    const existingUser = await db.user.findFirst({
-        where: {
-            email: user.primaryEmailAddress.emailAddress,
-        },
+    const existingUser = await db.user.findUnique({
+        where: { id: session.user.id },
     });
-
-    console.log("existingUser", existingUser);
 
     if (!existingUser) {
         await db.user.create({
             data: {
-                email: user.primaryEmailAddress.emailAddress,
-                name: user.fullName || user.firstName,
-                image: user.imageUrl,
+                id: session.user.id,
+                email: session.user.email,
+                name: session.user.name,
             },
         });
     }

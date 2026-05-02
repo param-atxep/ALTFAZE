@@ -1,10 +1,10 @@
 "use server";
 
 import { db } from "@/lib/db";
-import { signIn } from "@/lib/auth";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
+import { issueOtp } from "@/lib/auth-service";
 
 const SignUpSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -25,7 +25,6 @@ export async function signUpAction(formData: z.infer<typeof SignUpSchema>) {
     return { error: "Email already registered" };
   }
 
-  // Hash password
   const hashedPassword = await bcrypt.hash(validatedData.password, 10);
 
   // Create user
@@ -45,14 +44,15 @@ export async function signUpAction(formData: z.infer<typeof SignUpSchema>) {
     },
   });
 
-  // Create wallet
   await db.wallet.create({
     data: {
       userId: user.id,
     },
   });
 
-  return { success: true, userId: user.id };
+  await issueOtp(validatedData.email);
+
+  return { success: true, userId: user.id, requiresVerification: true };
 }
 
 const SignInSchema = z.object({
@@ -65,17 +65,25 @@ export async function signInAction(
 ) {
   const validatedData = SignInSchema.parse(formData);
 
-  try {
-    await signIn("credentials", {
-      email: validatedData.email,
-      password: validatedData.password,
-      redirect: false,
-    });
+  const user = await db.user.findUnique({
+    where: { email: validatedData.email },
+  });
 
-    return { success: true };
-  } catch (error) {
+  if (!user) {
     return { error: "Invalid email or password" };
   }
+
+  if (user.password) {
+    const passwordMatch = await bcrypt.compare(validatedData.password, user.password);
+
+    if (!passwordMatch) {
+      return { error: "Invalid email or password" };
+    }
+  }
+
+  await issueOtp(validatedData.email);
+
+  return { success: true, requiresVerification: true };
 }
 
 export async function setUserRole(role: "CLIENT" | "FREELANCER") {

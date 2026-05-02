@@ -93,6 +93,11 @@ model User {
   image         String?
   bio           String?
   role          UserRole  @default(CLIENT)
+
+  otp           String?
+  otpExpiry     DateTime?
+  resetToken    String?
+  resetExpiry   DateTime?
   
   location      String?
   hourlyRate    Float?

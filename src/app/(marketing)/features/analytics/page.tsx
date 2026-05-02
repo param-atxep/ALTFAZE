@@ -83,7 +83,7 @@ const AnalyticsPage = () => {
                             </p>
                             <div className="mt-6">
                                 <Button asChild>
-                                    <Link href="/auth/sign-up" className="flex items-center">
+                                    <Link href="/login" className="flex items-center">
                                         Get started for free
                                         <ArrowRightIcon className="w-4 h-4 ml-2" />
                                     </Link>

@@ -8,7 +8,6 @@ import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from "sonner";
 import { Label } from "../ui/label";
-import { signIn } from "next-auth/react";
 
 type UserRole = "CLIENT" | "FREELANCER";
 
@@ -44,20 +43,8 @@ const SignUpForm = () => {
             if (result?.error) {
                 toast.error(result.error);
             } else if (result?.success) {
-                toast.success("Account created successfully! Signing you in...");
-                
-                // Auto-sign in the user
-                const signInResult = await signIn("credentials", {
-                    email,
-                    password,
-                    redirect: false,
-                });
-
-                if (signInResult?.ok) {
-                    router.push("/dashboard");
-                } else {
-                    router.push("/auth/sign-in");
-                }
+                toast.success("Account created successfully! Check your email for a code.");
+                router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
             }
         } catch (error) {
             toast.error("An error occurred. Please try again");

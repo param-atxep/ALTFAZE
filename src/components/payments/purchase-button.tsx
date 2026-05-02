@@ -40,7 +40,7 @@ export function TemplatePurchaseButton({
   if (!session?.user?.email) {
     return (
       <Button
-        onClick={() => router.push('/auth/sign-in')}
+        onClick={() => router.push('/login')}
         className="w-full"
         size="lg"
       >

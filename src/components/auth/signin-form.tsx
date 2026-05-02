@@ -2,45 +2,45 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { signInAction } from "@/actions/auth";
-import { Eye, EyeOff, LoaderIcon } from "lucide-react";
+import { LoaderIcon } from "lucide-react";
 import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from "sonner";
 import { Label } from "../ui/label";
-import { signIn } from "next-auth/react";
 
 const SignInForm = () => {
 
     const router = useRouter();
 
     const [email, setEmail] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [showPassword, setShowPassword] = useState<boolean>(false);
     const [isLoading, setIsLoading] = useState<boolean>(false);
 
     const handleSignIn = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email || !password) {
-            toast.error("Email and password are required!");
+        if (!email) {
+            toast.error("Email is required!");
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const result = await signIn("credentials", {
-                email,
-                password,
-                redirect: false,
+            const response = await fetch("/api/auth/send-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
             });
 
-            if (result?.error) {
-                toast.error(result.error || "Invalid email or password");
-            } else if (result?.ok) {
-                toast.success("Signed in successfully");
-                router.push("/dashboard");
+            const result = await response.json();
+
+            if (!response.ok) {
+                toast.error(result.error || "Failed to send OTP");
+            } else {
+                toast.success("OTP sent successfully");
+                router.push(`/verify-otp?email=${encodeURIComponent(email)}`);
             }
         } catch (error) {
             toast.error("An error occurred. Please try again");
@@ -70,35 +70,6 @@ const SignInForm = () => {
                         className="w-full focus-visible:border-foreground"
                     />
                 </div>
-                <div className="mt-4 space-y-2">
-                    <Label htmlFor="password">
-                        Password
-                    </Label>
-                    <div className="relative w-full">
-                        <Input
-                            id="password"
-                            type={showPassword ? "text" : "password"}
-                            value={password}
-                            disabled={isLoading}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            className="w-full focus-visible:border-foreground"
-                        />
-                        <Button
-                            type="button"
-                            size="icon"
-                            variant="ghost"
-                            disabled={isLoading}
-                            className="absolute top-1 right-1"
-                            onClick={() => setShowPassword(!showPassword)}
-                        >
-                            {showPassword ?
-                                <EyeOff className="w-4 h-4" /> :
-                                <Eye className="w-4 h-4" />
-                            }
-                        </Button>
-                    </div>
-                </div>
                 <div className="mt-4 w-full">
                     <Button
                         type="submit"
@@ -107,7 +78,7 @@ const SignInForm = () => {
                     >
                         {isLoading ? (
                             <LoaderIcon className="w-5 h-5 animate-spin" />
-                        ) : "Sign in with email"}
+                        ) : "Send verification code"}
                     </Button>
                 </div>
             </form>

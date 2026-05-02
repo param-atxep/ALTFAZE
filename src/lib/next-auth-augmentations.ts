@@ -1,4 +1,4 @@
-import { type DefaultSession } from "next-auth";
+import type { DefaultSession } from "next-auth";
 
 type AuthRole = "CLIENT" | "FREELANCER" | "ADMIN";
 
@@ -25,3 +25,5 @@ declare module "next-auth/jwt" {
     image?: string | null;
   }
 }
+
+export {};

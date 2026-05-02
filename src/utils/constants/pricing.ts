@@ -116,7 +116,7 @@ export const PLANS = [
         ],
         btn: {
             text: "Start for free",
-            href: "/auth/sign-up?plan=free",
+            href: "/login?plan=free",
             variant: "default",
         }
     },
@@ -138,7 +138,7 @@ export const PLANS = [
         ],
         btn: {
             text: "Get started",
-            href: "/auth/sign-up?plan=pro",
+            href: "/login?plan=pro",
             variant: "purple",
         }
     },
@@ -160,7 +160,7 @@ export const PLANS = [
         ],
         btn: {
             text: "Contact team",
-            href: "/auth/sign-up?plan=business",
+            href: "/login?plan=business",
             variant: "default",
         }
     }

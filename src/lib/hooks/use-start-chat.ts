@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import { toast } from "sonner";
 
 export function useStartChat() {
   const router = useRouter();
@@ -9,7 +10,7 @@ export function useStartChat() {
 
   const startChat = async (userId: string, projectId?: string, orderId?: string) => {
     if (!session?.user?.id) {
-      router.push("/auth/sign-in");
+      router.push("/login");
       return;
     }
 
@@ -36,8 +37,7 @@ export function useStartChat() {
       // Navigate to chat
       router.push(`/chat?conversationId=${conversation.id}`);
     } catch (error) {
-      console.error("Error starting chat:", error);
-      alert("Failed to start chat. Please try again.");
+      toast.error("Failed to start chat. Please try again.");
     }
   };
 
